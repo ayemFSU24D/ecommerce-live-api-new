@@ -52,7 +52,7 @@ app.post('/stripe/create-checkout-session-embedded', async (req: Request, res: R
         quantity: item.quantity,
       })),
       mode: 'payment',
-      return_url: 'http://ecommerce-live-client.vercel.app/order-confirmation?session_id={CHECKOUT_SESSION_ID}',
+      return_url: 'https://ecommerce-live-client.vercel.app/order-confirmation?session_id={CHECKOUT_SESSION_ID}',
       client_reference_id: String(order_id),
     });
 
@@ -137,7 +137,7 @@ connectDB();
 // Start server
 
 app.listen(DB_PORT, () => {
-  console.log(`The server is running at http://ecommerce-live-api-new.vercel.app`);
+  console.log(`The server is running at https://ecommerce-live-api-new.vercel.app`);
 });
 
 
