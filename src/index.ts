@@ -146,7 +146,7 @@
 
 
 
-
+import serverlessExpress from '@vendia/serverless-express';
 import express from "express";
 import {connectDB} from "./config/db";
 import cookieParser from 'cookie-parser';
@@ -190,21 +190,5 @@ connectDB();
 
 // Start server
 
-app.listen(DB_PORT, () => {
-  console.log(`The server is running at https://ecommerce-live-api-new.vercel.app`);
-});
+export default serverlessExpress({ app });
 
-
-
-
-
-
-
-
-
-
-
-
-export default (req: VercelRequest, res: VercelResponse) => {
-  return app(req, res);
-};
