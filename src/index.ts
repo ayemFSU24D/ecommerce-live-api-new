@@ -137,7 +137,7 @@ connectDB();
 // Start server
 
 app.listen(DB_PORT, () => {
-  console.log(`The server is running at http://ecommerce-live-api-new.vercel.app:${DB_PORT}`);
+  console.log(`The server is running at http://ecommerce-live-api-new.vercel.app`);
 });
 
 
