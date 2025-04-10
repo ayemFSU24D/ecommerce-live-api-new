@@ -122,10 +122,9 @@ app.post('/stripe/webhook', async (req: Request, res: Response) => {
         res.status(500).json({ error: logError(error) });
       }
       break;
-      default:
-        console.log(`Unhandled event type ${event.type}`);
-        res.status(400).send('Event type not handled');
-        console.log('Webhook received: ', req.body);
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+      res.status(400).send('Event type not handled');
       break;
   }
 
@@ -152,6 +151,6 @@ app.listen(DB_PORT, () => {
 
 
 
-import serverlessExpress from '@vendia/serverless-express';
-export default serverlessExpress({ app });
-
+export default (req: VercelRequest, res: VercelResponse) => {
+  return app(req, res);
+};
