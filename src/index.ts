@@ -66,19 +66,23 @@ app.post('/stripe/create-checkout-session-embedded', async (req: Request, res: R
 // Stripe Webhook
 app.post('/stripe/webhook', async (req: Request, res: Response) => {
   const event = req.body;
+  
+  // Handle the event
   switch (event.type) {
     case 'checkout.session.completed':
       const session = event.data.object;
-      const id = session.client_reference_id;
+    
+      console.log(session);
       try {
-        const sql = `
-          UPDATE orders 
-          SET payment_status = ?, payment_id = ?, order_status = ?
-          WHERE id = ?
-        `;
-        const payment_status = "Paid";
+    const sql = `
+      UPDATE orders 
+      SET payment_status = ?, payment_id = ?,order_status = ?
+      WHERE id = ?
+    `;
+    const payment_status = "Paid";
         const payment_id = session.id;
         const order_status = "Received";
+        const id = session.client_reference_id; // t.ex. om du sparade order-id i metadata
 
         const [result] = await db.query<ResultSetHeader>(sql, [
           payment_status,
@@ -87,48 +91,63 @@ app.post('/stripe/webhook', async (req: Request, res: Response) => {
           id
         ]);
 
-        if (result.affectedRows === 0) {
-          return res.status(404).json({ message: 'Order not found' });
-        }
+
+
 
         const orderItemsQuery = `
-          SELECT * FROM order_items WHERE order_id = ?
+        SELECT * FROM order_items WHERE order_id = ?
+      `;
+      const [orderItems]:[IOrderItem[], FieldPacket[]] = await db.query(orderItemsQuery, [id]);
+  
+      // Uppdatera lagerstatus för varje produkt i ordern
+      for (const item of orderItems) {
+        const productId = item.product_id;
+        const quantitySold = item.quantity;
+  
+        const sqlUpdateProduct = `
+          UPDATE products 
+          SET stock = stock - ? 
+          WHERE id = ?
         `;
-        const [orderItems]: [IOrderItem[], FieldPacket[]] = await db.query(orderItemsQuery, [id]);
+  
+        // Kör SQL-frågan för att uppdatera produktens lager
+         await db.query<ResultSetHeader>(sqlUpdateProduct, [
+          quantitySold,
+          productId
+        ]);
+         }
 
-        for (const item of orderItems) {
-          const productId = item.product_id;
-          const quantitySold = item.quantity;
 
-          const sqlUpdateProduct = `
-            UPDATE products 
-            SET stock = stock - ? 
-            WHERE id = ?
-          `;
 
-          const [productResult] = await db.query<ResultSetHeader>(sqlUpdateProduct, [
-            quantitySold,
-            productId
-          ]);
 
-          if (productResult.affectedRows === 0) {
-            console.error(`Failed to update product stock for productId: ${productId}`);
-          }
-        }
+        
 
-        res.json({ message: 'Order updated and stock adjusted' });
-      } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: logError(error) });
-      }
+    result.affectedRows === 0
+      ? res.status(404).json({message: 'Order not found'})
+      : res.json({message: 'Order updated'});
+      return;
+  } catch(error) {
+    res.status(500).json({error: logError(error)})
+  }
+      
+      // Update order with confirmed payment
+      // -- payment_status = "Paid"
+      // -- payment_id = session.id
+      // -- order_status = "Received"
+
+      // Update product stock
+
+      // Send confirmation email to customer
+
+      // Sen purchase to accounting service
+      console.log(event.type.object);
       break;
     default:
       console.log(`Unhandled event type ${event.type}`);
-      res.status(400).send('Event type not handled');
-      break;
   }
 
-  res.json({ received: true });
+  // Return a response to acknowledge receipt of the event
+  res.json({received: true});
 });
 
 // Connect to DB
