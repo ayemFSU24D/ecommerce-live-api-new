@@ -14,7 +14,7 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: "*",  // tillåt alla domäner för nu, justera för säkerhet senare
+  origin: "*",  // tillåt alla domäner för nu, justera för säkerhet senare(auth)
   credentials: true
 }));
 
@@ -25,6 +25,8 @@ import orderRouter from "./routes/orders";
 import orderItemRouter from "./routes/orderItems";
 import authRouter from "./routes/auth";
 import { VercelRequest, VercelResponse } from "@vercel/node";
+import { DB_PORT } from "./constants/env";
+
 
 app.use('/products', productRouter);
 app.use('/customers', customerRouter);
@@ -50,7 +52,7 @@ app.post('/stripe/create-checkout-session-embedded', async (req: Request, res: R
         quantity: item.quantity,
       })),
       mode: 'payment',
-      return_url: 'http://ecommerce-api-news-two.vercel.app/order-confirmation?session_id={CHECKOUT_SESSION_ID}',
+      return_url: 'http://ecommerce-live-client.vercel.app/order-confirmation?session_id={CHECKOUT_SESSION_ID}',
       client_reference_id: String(order_id),
     });
 
@@ -133,9 +135,9 @@ app.post('/stripe/webhook', async (req: Request, res: Response) => {
 connectDB();
 
 // Start server
-const PORT = process.env.PORT || 12825;
-app.listen(PORT, () => {
-  console.log(`The server is running at (http://localhost?):${PORT}`);
+
+app.listen(DB_PORT, () => {
+  console.log(`The server is running at http://ecommerce-live-api-new.vercel.app:${DB_PORT}`);
 });
 
 
