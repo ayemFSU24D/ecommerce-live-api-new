@@ -31,6 +31,7 @@ export const checkoutSessionEmbedded = async (req: Request, res: Response) => {
       });
     
       res.send({ clientSecret: session.client_secret });
+      console.log(session.client_secret )
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: logError(error) });
