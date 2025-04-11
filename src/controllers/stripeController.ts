@@ -26,6 +26,7 @@ export const checkoutSessionEmbedded = async (req: Request, res: Response) => {
           quantity: item.quantity,
         })),
         mode: 'payment',
+        ui_mode: 'embedded',
         return_url: 'https://ecommerce-live-client.vercel.app/order-confirmation?session_id={CHECKOUT_SESSION_ID}',
         client_reference_id: String(order_id),
       });
